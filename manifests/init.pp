@@ -36,22 +36,24 @@
 #  }
 #
 class play (
-  $version,
-  $install_path = '/opt',
+  $version, #1.2.12
+  $install_path = '/usr/local',
   $user= 'root'
 ) {
 
   include wget
 
   $play_path = "${install_path}/play-${version}"
+  #$download_url = "http://downloads.typesafe.com/typesafe-activator/${version}/typesafe-activator-${version}-minimal.zip"
   $download_url = "http://downloads.typesafe.com/play/${version}/play-${version}.zip"
 
   notice("Installing Play ${version}")
 
-  exec { ‘download-play-framework’:
-    command => “wget $download_url”
-    creates => "/tmp/play-${version}.zip",
+  exec { 'download-play-framework':
+    cwd     => $install_path,
+    command => "/opt/boxen/homebrew/bin/wget -O /tmp/play-${version}.zip  $download_url",
   }
+
 
   exec { 'mkdir.play.install.path':
     command => "/bin/mkdir -p ${install_path}",
@@ -60,42 +62,55 @@ class play (
 
   exec { 'unzip-play-framework':
     cwd     => $install_path,
-    command => "/usr/bin/unzip /tmp/play-${version}.zip",
-    unless  => "/usr/bin/test -d ${play_path}",
+    command => "tar xvf /tmp/play-${version}.zip",
+    creates => "${play_path}",
+    path    => ['/usr/bin'],
+    #unless  => "/bin/test -d ${play_path}",
     require => [
-      Package['unzip'],
-      Exec[‘download-play-framework'],
+      #Package['unzip'],
+      Exec['download-play-framework'],
       Exec['mkdir.play.install.path']
     ],
   }
 
-  exec { 'change ownership of play installation':
-    cwd     => $install_path,
-    command => "/bin/chown -R ${user}: play-${version}",
-    require => Exec['unzip-play-framework']
-  }
+  #exec { 'change ownership of tmp location':
+   # cwd     => $install_path,
+   # command => "",   #"/usr/sbin/chown -R 775 /tmp/play-${version}.zip",
+   # require => Exec['download-play-framework']
+  #}
 
-  file { "${play_path}/play":
-    ensure  => file,
-    owner   => $user,
-    mode    => '0755',
-    require => Exec['unzip-play-framework']
-  }
+  #exec { 'change ownership of play installation':
+  # cwd     => $install_path,
+  # command => "/usr/sbin/chown -R ${user}: /tmp/play-${version}",
+  # require => Exec['unzip-play-framework']
+  #}
 
-  file {'/usr/bin/play':
-    ensure  => 'link',
-    target  => "${play_path}/play",
-    require => File["${play_path}/play"],
+  #file { "${play_path}/play":
+   # ensure  => file,
+   # owner   => $user,
+   # mode    => '0755',
+   # require => Exec['unzip-play-framework']
+  #}
+
+  #file {'/usr/bin/play':
+   # ensure  => 'link',
+   # target  => "${play_path}/play",
+   # require => File["${play_path}/play"],
+  #}
+
+  exec {'adding symbolic link':
+    command => "ln -sf ${play_path}/play /opt/boxen/bin/play",
+    require => Exec['unzip-play-framework']
   }
 
   # Add a unversioned symlink to the play installation.
-  file { "${install_path}/play":
-    ensure  => link,
-    target  => $play_path,
+  exec { "${install_path}/play":
+    command  => "ln -sf ${play_path} ${install_path}/play",
     require => Exec['mkdir.play.install.path', 'unzip-play-framework']
   }
 
   if !defined(Package['unzip']) {
-    package{ 'unzip': ensure => installed }
+    notice("on mac unzip should be installed by default... skipping unzip installation") 
+    #package{ 'unzip': ensure => installed }
   }
 }
