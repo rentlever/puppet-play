@@ -48,7 +48,7 @@ class play (
 
   notice("Installing Play ${version}")
 
-  exec { ‘download play framework’:
+  exec { ‘download_play_framework’:
     command => “wget $download_url”
     creates => "/tmp/play-${version}.zip",
   }
