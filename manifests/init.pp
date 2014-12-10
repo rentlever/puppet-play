@@ -47,10 +47,10 @@ class play (
   $download_url = "http://downloads.typesafe.com/play/${version}/play-${version}.zip"
 
   notice("Installing Play ${version}")
-  wget::fetch {'download-play-framework':
-    source      => $download_url,
-    destination => "/tmp/play-${version}.zip",
-    timeout     => 0,
+
+  exec { ‘download play framework’:
+    command => “wget $download_url”
+    creates => "/tmp/play-${version}.zip",
   }
 
   exec { 'mkdir.play.install.path':
