@@ -48,7 +48,7 @@ class play (
 
   notice("Installing Play ${version}")
 
-  exec { ‘download_play_framework’:
+  exec { ‘download-play-framework’:
     command => “wget $download_url”
     creates => "/tmp/play-${version}.zip",
   }
@@ -64,7 +64,7 @@ class play (
     unless  => "/usr/bin/test -d ${play_path}",
     require => [
       Package['unzip'],
-      Wget::Fetch['download-play-framework'],
+      Exec[‘download-play-framework'],
       Exec['mkdir.play.install.path']
     ],
   }
