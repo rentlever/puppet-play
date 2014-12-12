@@ -43,15 +43,15 @@ class play (
 
   include wget
 
-  $play_path = "${install_path}/play-${version}"
+  $play_path = "${install_path}/activator-${version}"
   #$download_url = "http://downloads.typesafe.com/typesafe-activator/${version}/typesafe-activator-${version}-minimal.zip"
-  $download_url = "http://downloads.typesafe.com/play/${version}/play-${version}.zip"
+  $download_url = "http://downloads.typesafe.com/typesafe-activator/${version}/typesafe-activator-${version}.zip"
 
   notice("Installing Play ${version}")
 
   exec { 'download-play-framework':
     cwd     => $install_path,
-    command => "/opt/boxen/homebrew/bin/wget -O /tmp/play-${version}.zip  $download_url",
+    command => "/opt/boxen/homebrew/bin/wget -O /tmp/activator-${version}.zip  $download_url",
   }
 
 
@@ -62,7 +62,7 @@ class play (
 
   exec { 'unzip-play-framework':
     cwd     => $install_path,
-    command => "tar xvf /tmp/play-${version}.zip",
+    command => "tar xvf /tmp/activator-${version}.zip",
     creates => "${play_path}",
     path    => ['/usr/bin'],
     #unless  => "/bin/test -d ${play_path}",
@@ -75,37 +75,35 @@ class play (
 
   #exec { 'change ownership of tmp location':
    # cwd     => $install_path,
-   # command => "",   #"/usr/sbin/chown -R 775 /tmp/play-${version}.zip",
+   # command => "",   #"/usr/sbin/chown -R 775 /tmp/activator-${version}.zip",
    # require => Exec['download-play-framework']
   #}
 
   #exec { 'change ownership of play installation':
   # cwd     => $install_path,
-  # command => "/usr/sbin/chown -R ${user}: /tmp/play-${version}",
+  # command => "/usr/sbin/chown -R ${user}: /tmp/activator-${version}",
   # require => Exec['unzip-play-framework']
   #}
 
-  #file { "${play_path}/play":
+  #file { "${play_path}/activator":
    # ensure  => file,
    # owner   => $user,
    # mode    => '0755',
-   # require => Exec['unzip-play-framework']
-  #}
 
-  #file {'/usr/bin/play':
+  #file {'/usr/bin/activator':
    # ensure  => 'link',
-   # target  => "${play_path}/play",
+   # target  => "${play_path}/activator",
    # require => File["${play_path}/play"],
   #}
 
   exec {'adding symbolic link':
-    command => "ln -sf ${play_path}/play /opt/boxen/bin/play",
+    command => "ln -sf ${play_path}/activator /opt/boxen/bin/activator",
     require => Exec['unzip-play-framework']
   }
 
   # Add a unversioned symlink to the play installation.
-  exec { "${install_path}/play":
-    command  => "ln -sf ${play_path} ${install_path}/play",
+  exec { "${install_path}/activator":
+    command  => "ln -sf ${play_path} ${install_path}/activator",
     require => Exec['mkdir.play.install.path', 'unzip-play-framework']
   }
 
